@@ -10,6 +10,11 @@ use Illuminate\View\View;
 
 class ProjectController extends Controller
 {
+    public function __construct()
+    {
+        $this->authorizeResource(Project::class, 'project');
+    }
+
     public function index(): View
     {
         $projects = Project::with('owner')
