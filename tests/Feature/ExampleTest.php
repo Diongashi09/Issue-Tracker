@@ -10,10 +10,9 @@ class ExampleTest extends TestCase
     /**
      * A basic test example.
      */
-    public function test_the_application_returns_a_successful_response(): void
+    public function test_root_redirects_to_projects_index(): void
     {
-        $response = $this->get('/');
-
-        $response->assertStatus(200);
+        // / now redirects to projects.index per blueprint §8
+        $this->get('/')->assertRedirect(route('projects.index'));
     }
 }
