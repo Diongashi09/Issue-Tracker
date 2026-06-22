@@ -5,17 +5,24 @@
                 <a href="{{ route('projects.index') }}" class="text-decoration-none text-muted">&larr;</a>
                 <h1 class="h4 mb-0">{{ $project->name }}</h1>
             </div>
+            @canany(['update', 'delete'], $project)
             <div class="d-flex gap-2">
-                <a href="{{ route('projects.edit', $project) }}" class="btn btn-outline-secondary btn-sm">
-                    Edit Project
-                </a>
-                <form method="POST" action="{{ route('projects.destroy', $project) }}" class="d-inline"
-                      onsubmit="return confirm('Delete project and all its issues?')">
-                    @csrf
-                    @method('DELETE')
-                    <button type="submit" class="btn btn-outline-danger btn-sm">Delete</button>
-                </form>
+                @can('update', $project)
+                    <a href="{{ route('projects.edit', $project) }}" class="btn btn-outline-secondary btn-sm">
+                        Edit Project
+                    </a>
+                @endcan
+
+                @can('delete', $project)
+                    <form method="POST" action="{{ route('projects.destroy', $project) }}" class="d-inline"
+                          onsubmit="return confirm('Delete project and all its issues?')">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="btn btn-outline-danger btn-sm">Delete</button>
+                    </form>
+                @endcan
             </div>
+            @endcanany
         </div>
     </x-slot>
 

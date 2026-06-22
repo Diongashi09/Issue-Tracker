@@ -46,17 +46,21 @@
                                 {{ $project->deadline?->format('M j, Y') ?? '—' }}
                             </td>
                             <td class="text-end text-nowrap">
-                                <a href="{{ route('projects.edit', $project) }}"
-                                   class="btn btn-outline-secondary btn-sm">Edit</a>
+                                @can('update', $project)
+                                    <a href="{{ route('projects.edit', $project) }}"
+                                       class="btn btn-outline-secondary btn-sm">Edit</a>
+                                @endcan
 
-                                <form method="POST"
-                                      action="{{ route('projects.destroy', $project) }}"
-                                      class="d-inline"
-                                      onsubmit="return confirm('Delete project "{{ addslashes($project->name) }}" and all its issues?')">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn btn-outline-danger btn-sm">Delete</button>
-                                </form>
+                                @can('delete', $project)
+                                    <form method="POST"
+                                          action="{{ route('projects.destroy', $project) }}"
+                                          class="d-inline"
+                                          onsubmit="return confirm('Delete project &quot;{{ addslashes($project->name) }}&quot; and all its issues?')">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-outline-danger btn-sm">Delete</button>
+                                    </form>
+                                @endcan
                             </td>
                         </tr>
                     @empty
