@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Issue\CommentController as IssueCommentController;
+use App\Http\Controllers\Issue\MemberController as IssueMemberController;
 use App\Http\Controllers\Issue\TagController as IssueTagController;
 use App\Http\Controllers\IssueController;
 use App\Http\Controllers\ProfileController;
@@ -25,6 +26,10 @@ Route::middleware('auth')->group(function () {
     // Nested tag sub-resource (AJAX — blueprint §8)
     Route::post  ('issues/{issue}/tags',       [IssueTagController::class, 'store'])->name('issues.tags.store');
     Route::delete('issues/{issue}/tags/{tag}', [IssueTagController::class, 'destroy'])->name('issues.tags.destroy');
+
+    // Nested member sub-resource (AJAX — blueprint §8)
+    Route::post  ('issues/{issue}/members',        [IssueMemberController::class, 'store'])->name('issues.members.store');
+    Route::delete('issues/{issue}/members/{user}', [IssueMemberController::class, 'destroy'])->name('issues.members.destroy');
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');

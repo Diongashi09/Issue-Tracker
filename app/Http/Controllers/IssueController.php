@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\Issue\IndexIssueRequest;
 use App\Http\Requests\Issue\StoreIssueRequest;
 use App\Http\Requests\Issue\UpdateIssueRequest;
 use App\Models\Issue;
 use App\Models\Project;
 use App\Models\Tag;
-use Illuminate\Http\Request;
+use App\Models\User;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 
@@ -15,16 +17,41 @@ class IssueController extends Controller
 {
     // Phase 5 wires authorizeResource(Issue::class, 'issue') here for edit/update/destroy.
 
-    public function index(): View
+    public function index(IndexIssueRequest $request): View|JsonResponse
     {
-        // Eager-load everything the rows render so no N+1 sneaks in before the AJAX
-        // layer lands in Phase 4 (blueprint §14). Filters/search are added in Phase 4.
         $issues = Issue::with(['project', 'tags', 'assignees'])
             ->withCount('comments')
+            ->when($request->validated('status'),   fn ($q, $v) => $q->status($v))
+            ->when($request->validated('priority'), fn ($q, $v) => $q->priority($v))
+            ->when($request->validated('tag'),      fn ($q, $v) => $q->forTag((int) $v))
+            ->when($request->validated('q'),        fn ($q, $v) => $q->search($v))
             ->latest()
-            ->paginate(15);
+            ->paginate(15)
+            ->withQueryString();
 
-        return view('issues.index', compact('issues'));
+        if ($request->expectsJson()) {
+            return response()->json([
+                'html'       => view('issues.partials.issue-list', [
+                    'issues'      => $issues,
+                    'showProject' => true,
+                ])->render(),
+                'pagination' => [
+                    'html'      => $issues->hasPages() ? $issues->links()->toHtml() : '',
+                    'has_pages' => $issues->hasPages(),
+                    'total'     => $issues->total(),
+                ],
+            ]);
+        }
+
+        $filters = [
+            'status'   => $request->validated('status', ''),
+            'priority' => $request->validated('priority', ''),
+            'tag'      => $request->validated('tag', ''),
+            'q'        => $request->validated('q', ''),
+        ];
+        $allTags = Tag::orderBy('name')->get();
+
+        return view('issues.index', compact('issues', 'filters', 'allTags'));
     }
 
     public function create(): View
@@ -32,7 +59,6 @@ class IssueController extends Controller
         return view('issues.create', [
             'projects'          => Project::orderBy('name')->get(),
             'tags'              => Tag::orderBy('name')->get(),
-            // Pre-select the project when arriving from a project's "New Issue" button.
             'selectedProjectId' => request('project'),
         ]);
     }
@@ -48,11 +74,11 @@ class IssueController extends Controller
 
     public function show(Issue $issue): View
     {
-        // project: header breadcrumb; tags: tag-list partial; comments: loaded via AJAX (blueprint §14)
-        $issue->loadMissing(['project', 'tags']);
-        $allTags = Tag::orderBy('name')->get();
+        $issue->loadMissing(['project', 'tags', 'assignees']);
+        $allTags  = Tag::orderBy('name')->get();
+        $allUsers = User::orderBy('name')->get();
 
-        return view('issues.show', compact('issue', 'allTags'));
+        return view('issues.show', compact('issue', 'allTags', 'allUsers'));
     }
 
     public function edit(Issue $issue): View

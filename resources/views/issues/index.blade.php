@@ -2,21 +2,24 @@
     <x-slot name="header">
         <div class="d-flex align-items-center justify-content-between">
             <h1 class="h4 mb-0">Issues</h1>
-            <a href="{{ route('issues.create') }}" class="btn btn-primary btn-sm">
-                + New Issue
-            </a>
+            <a href="{{ route('issues.create') }}" class="btn btn-primary btn-sm">+ New Issue</a>
         </div>
     </x-slot>
 
-    {{-- Phase 4 adds the filters bar (status/priority/tag + search) above this card. --}}
-    <div class="card shadow-sm">
-        @include('issues.partials.issue-list', ['issues' => $issues, 'showProject' => true])
+    {{-- Filter bar: status / priority / tag / search (AJAX, debounced) --}}
+    @include('issues.partials.filters', ['filters' => $filters, 'allTags' => $allTags])
 
-        @if ($issues->hasPages())
-            <div class="card-footer d-flex justify-content-center">
-                {{ $issues->links() }}
-            </div>
-        @endif
+    <div class="card shadow-sm">
+        {{-- AJAX swaps only this div's innerHTML on filter / page changes --}}
+        <div id="issue-list-container">
+            @include('issues.partials.issue-list', ['issues' => $issues, 'showProject' => true])
+        </div>
+
+        {{-- Pagination — also swapped by AJAX; d-none when no pages --}}
+        <div id="issue-pagination"
+             class="card-footer d-flex justify-content-center{{ $issues->hasPages() ? '' : ' d-none' }}">
+            {{ $issues->links() }}
+        </div>
     </div>
 
 </x-app-layout>

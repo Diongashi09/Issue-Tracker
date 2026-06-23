@@ -129,13 +129,13 @@
                 </div>
             </div>
 
-            {{-- Members — placeholder. Phase 4 wires assign/unassign via AJAX. --}}
+            {{-- Members — server-rendered on first paint; AJAX swaps #members-section innerHTML on assign/unassign. --}}
             <div class="card shadow-sm">
                 <div class="card-header">
                     <h2 class="h6 mb-0">Assigned Members</h2>
                 </div>
-                <div class="card-body" id="members-section" data-issue-id="{{ $issue->id }}">
-                    <p class="mb-0 text-muted small">Member assignment arrives in Phase 4.</p>
+                <div class="card-body" id="members-section">
+                    @include('issues.partials.member-list', ['issue' => $issue, 'allUsers' => $allUsers])
                 </div>
             </div>
         </div>
