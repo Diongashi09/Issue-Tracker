@@ -1,58 +1,119 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Issue Tracker
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+A full-stack Laravel 13 issue tracker with project management, AJAX-driven interactions, role-based authorization, and a full PHPUnit test suite.
 
-## About Laravel
+---
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Requirements
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+- PHP 8.3+
+- Composer
+- Node.js 20+ and npm
+- SQLite (built into PHP — used for tests) or MySQL/MariaDB for production
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+---
 
-## Learning Laravel
-
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
-
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
-
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
-
-## Agentic Development
-
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+## Setup
 
 ```bash
-composer require laravel/boost --dev
+# 1. Install PHP dependencies
+composer install
 
-php artisan boost:install
+# 2. Install JS dependencies
+npm install
+
+# 3. Copy the environment file and generate an application key
+cp .env.example .env
+php artisan key:generate
+
+# 4. Configure your database in .env, then migrate and seed
+php artisan migrate:fresh --seed
+
+# 5. Build front-end assets
+npm run build
+
+# 6. Start the development server
+php artisan serve
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+Visit http://localhost:8000 and log in with the seeded credentials below.
 
-## Contributing
+---
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+## Seeded Login Credentials
 
-## Code of Conduct
+| Email | Password | Role |
+|---|---|---|
+| `test@example.com` | `password` | Demo user — owns projects and issues |
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+The seeder also creates four additional project owners and two users with **no owned projects** — useful for verifying the authorization boundary (they can browse but cannot edit others' work).
 
-## Security Vulnerabilities
+To reset to a clean slate at any time:
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+```bash
+php artisan migrate:fresh --seed
+```
 
-## License
+---
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+## Running Tests
+
+```bash
+php artisan test
+```
+
+Tests use an in-memory SQLite database (`DB_CONNECTION=sqlite`, `DB_DATABASE=:memory:` in `phpunit.xml`) so they run without affecting your development database. The full suite covers:
+
+- Project and Issue CRUD (happy path + guest redirects)
+- Policy enforcement (owner-only 403s, non-owner tag/member operations)
+- AJAX endpoints (`postJson`/`getJson` — JSON shape, status codes, DB side-effects)
+- Validation (missing fields, duplicate tag names, invalid enum values, deadline rules)
+- Search and filter composition
+
+---
+
+## Architecture Decisions
+
+### Bootstrap 5 instead of Tailwind
+
+Laravel Breeze scaffolds with Tailwind. The assignment specifies Bootstrap 5, so Tailwind was removed in a dedicated commit (replacing the Vite config, layout files, and all auth views) to keep the history clean. Mixing both would have produced visual chaos and contradicted the brief.
+
+### JSON-partial AJAX — server renders, JavaScript swaps
+
+Every AJAX endpoint returns `{ html: "..." }` where the value is a server-rendered Blade partial — the **same file** used on first paint. Comments, tags, and members all share this pattern. The alternative (building DOM strings in JavaScript) duplicates markup, risks XSS if escaping slips, and diverges from the server's rendering as the app evolves. With Blade as the single rendering authority, the partial is consistent whether it arrives via a full-page load or an XHR.
+
+### Content-negotiated `issues.index`
+
+`IssueController@index` returns a full Blade view for browser requests and `{ html, pagination }` JSON for AJAX requests (`expectsJson()` — set automatically by the `Accept: application/json` header in `lib/http.js`). One endpoint, one query, two consumers. No separate `/search` route that would have duplicated the filter composition logic.
+
+### Backed enums for status and priority
+
+`IssueStatus` and `IssuePriority` are PHP backed string enums with `label()` and `color()` helpers. They are the single source of truth used for: Eloquent casts, `Rule::enum()` validation, `<select>` option rendering, and badge display. No duplicated string lists anywhere.
+
+### `user_id` excluded from Project's `$fillable`
+
+Ownership is set server-side via `auth()->id()`, not from the request body. A forged `user_id` field in the form payload is silently ignored. The `ProjectTest` includes a specific test that verifies this boundary.
+
+### FK cascade on project → issue deletion
+
+Deleting a project cascades to its issues (and transitively to their comments, tags, and assignments). This is the natural semantic for a tracker — an issue without a project is orphaned and useless. The alternative (restrict) would require manually deleting issues before projects, adding friction with no safety benefit at this scale.
+
+### `syncWithoutDetaching()` for idempotent tag/member attachment
+
+Using `attach()` on a composite primary-key pivot table throws a constraint violation on a duplicate submit. `syncWithoutDetaching()` is a no-op if the relationship already exists, making the `POST issues/{issue}/tags` endpoint safe against double-clicks and network retries.
+
+### `AbortController` on debounced search
+
+The search input fires a fetch request 300 ms after the last keystroke. If another keystroke arrives before the response returns, the previous request is aborted with `AbortController.abort()`. Without this, fast typing produces out-of-order responses that can overwrite newer results with older ones. `AbortError` is caught and silently ignored — it is not a failure, just a cancelled in-flight request.
+
+### `Model::preventLazyLoading()` in non-production
+
+Enabled in `AppServiceProvider::boot()`. Any relationship accessed without being eager-loaded throws an exception in development and test environments. This forces every list page to declare its `with()`/`withCount()` calls explicitly and makes N+1 bugs loud rather than silent.
+
+### `IssuePolicy` checks parent project ownership
+
+Issues do not have a direct owner field. Authority to edit or delete an issue derives from owning the parent project (`$user->id === $issue->project->user_id`). The policy uses `loadMissing('project')` so it is safe whether or not the controller has already eager-loaded the relationship, without double-querying.
+
+### `authorizeResource()` + explicit `authorize()` on nested controllers
+
+`IssueController` uses `$this->authorizeResource(Issue::class, 'issue')` in its constructor, which gates all seven resource actions through `IssuePolicy` automatically. The nested sub-resource controllers (`Issue\TagController`, `Issue\MemberController`) cannot use `authorizeResource` (they don't match the resource naming convention), so they call `$this->authorize('update', $issue)` explicitly at the top of each action — the same policy method, the same ownership check.
