@@ -1,0 +1,49 @@
+<?php
+
+namespace App\Http\Controllers\Issue;
+
+use App\Http\Controllers\Controller;
+use App\Http\Requests\Issue\AttachTagRequest;
+use App\Models\Issue;
+use App\Models\Tag;
+use Illuminate\Http\JsonResponse;
+
+class TagController extends Controller
+{
+    /**
+     * Attach a tag to the issue (idempotent — duplicate pivot rows are ignored).
+     *
+     * Returns the refreshed tag-list partial so JS can swap the section's innerHTML.
+     */
+    public function store(AttachTagRequest $request, Issue $issue): JsonResponse
+    {
+        $issue->tags()->syncWithoutDetaching([$request->validated('tag_id')]);
+
+        return $this->tagListResponse($issue);
+    }
+
+    /**
+     * Detach a tag from the issue.
+     */
+    public function destroy(Issue $issue, Tag $tag): JsonResponse
+    {
+        $issue->tags()->detach($tag);
+
+        return $this->tagListResponse($issue);
+    }
+
+    /**
+     * Reload the issue's tags and return the rendered tag-list partial.
+     *
+     * Uses load() (not loadMissing()) so the freshly modified pivot is always reflected.
+     */
+    private function tagListResponse(Issue $issue): JsonResponse
+    {
+        $issue->load('tags');
+        $allTags = Tag::orderBy('name')->get();
+
+        return response()->json([
+            'html' => view('issues.partials.tag-list', compact('issue', 'allTags'))->render(),
+        ]);
+    }
+}

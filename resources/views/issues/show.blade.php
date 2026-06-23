@@ -119,13 +119,13 @@
 
         {{-- Sidebar: tags + members --}}
         <div class="col-lg-4">
-            {{-- Tags — placeholder. Phase 4 wires attach/detach via AJAX. --}}
+            {{-- Tags — server-rendered on first paint; AJAX swaps #tags-section innerHTML on attach/detach. --}}
             <div class="card shadow-sm mb-4">
                 <div class="card-header">
                     <h2 class="h6 mb-0">Tags</h2>
                 </div>
-                <div class="card-body" id="tags-section" data-issue-id="{{ $issue->id }}">
-                    <p class="mb-0 text-muted small">Tag management arrives in Phase 4.</p>
+                <div class="card-body" id="tags-section">
+                    @include('issues.partials.tag-list', ['issue' => $issue, 'allTags' => $allTags])
                 </div>
             </div>
 

@@ -7,6 +7,7 @@ use App\Http\Requests\Issue\UpdateIssueRequest;
 use App\Models\Issue;
 use App\Models\Project;
 use App\Models\Tag;
+use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 
@@ -47,11 +48,11 @@ class IssueController extends Controller
 
     public function show(Issue $issue): View
     {
-        // Header needs the parent project link. Tags/members/comments are placeholder
-        // sections for now — they get loaded via AJAX in Phase 4 (blueprint §6, §9).
-        $issue->loadMissing('project');
+        // project: header breadcrumb; tags: tag-list partial; comments: loaded via AJAX (blueprint §14)
+        $issue->loadMissing(['project', 'tags']);
+        $allTags = Tag::orderBy('name')->get();
 
-        return view('issues.show', compact('issue'));
+        return view('issues.show', compact('issue', 'allTags'));
     }
 
     public function edit(Issue $issue): View
