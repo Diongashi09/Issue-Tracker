@@ -6,6 +6,7 @@ use App\Http\Controllers\Issue\TagController as IssueTagController;
 use App\Http\Controllers\IssueController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProjectController;
+use App\Http\Controllers\TagController;
 use Illuminate\Support\Facades\Route;
 
 // Root redirect: blueprint §8 — / redirects to projects.index
@@ -30,6 +31,9 @@ Route::middleware('auth')->group(function () {
     // Nested member sub-resource (AJAX — blueprint §8)
     Route::post  ('issues/{issue}/members',        [IssueMemberController::class, 'store'])->name('issues.members.store');
     Route::delete('issues/{issue}/members/{user}', [IssueMemberController::class, 'destroy'])->name('issues.members.destroy');
+
+    // Tag library — creation only (index served inline; blueprint §8)
+    Route::post('tags', [TagController::class, 'store'])->name('tags.store');
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');

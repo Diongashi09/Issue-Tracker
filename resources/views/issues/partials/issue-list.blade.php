@@ -84,8 +84,9 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="{{ $showProject ? 6 : 5 }}" class="text-center text-muted py-5">
-                        No issues yet.
+                    <td colspan="{{ $showProject ? 6 : 5 }}"
+                        class="text-center text-muted py-5 fst-italic">
+                        {{ $emptyMessage ?? 'No issues found.' }}
                     </td>
                 </tr>
             @endforelse

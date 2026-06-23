@@ -37,8 +37,9 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
         clearErrors();
 
-        submitBtn.disabled    = true;
-        submitBtn.textContent = 'Adding…';
+        submitBtn.disabled = true;
+        submitBtn.innerHTML =
+            '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>Adding…';
 
         const data = {
             author_name: form.querySelector('[name="author_name"]').value,
@@ -66,8 +67,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 alert(`Could not post comment: ${err.message}`);
             }
         } finally {
-            submitBtn.disabled    = false;
-            submitBtn.textContent = 'Add Comment';
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = 'Add Comment';
         }
     });
 

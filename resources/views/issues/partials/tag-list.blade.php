@@ -18,16 +18,20 @@
 </div>
 
 @if ($available->isNotEmpty())
-    <form id="tag-attach-form" class="d-flex gap-2 mt-3" novalidate
+    <form id="tag-attach-form" class="mt-3" novalidate
           data-store-url="{{ route('issues.tags.store', $issue) }}">
-        <select class="form-select form-select-sm" name="tag_id" id="tag-select">
-            <option value="">Add a tag…</option>
-            @foreach ($available as $tag)
-                <option value="{{ $tag->id }}">{{ $tag->name }}</option>
-            @endforeach
-        </select>
-        <button type="submit" class="btn btn-outline-secondary btn-sm text-nowrap">
-            Add
-        </button>
+        <div class="d-flex gap-2">
+            <select class="form-select form-select-sm" name="tag_id" id="tag-select">
+                <option value="">Add a tag…</option>
+                @foreach ($available as $tag)
+                    <option value="{{ $tag->id }}">{{ $tag->name }}</option>
+                @endforeach
+            </select>
+            <button type="submit" class="btn btn-outline-secondary btn-sm text-nowrap">
+                Add
+            </button>
+        </div>
+        {{-- Inline error shown by tags.js on 422 --}}
+        <div class="text-danger small mt-1 d-none" id="error-tag_id" role="alert"></div>
     </form>
 @endif

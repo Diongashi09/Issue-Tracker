@@ -67,7 +67,7 @@
             @endif
         </div>
 
-        @include('issues.partials.issue-list', ['issues' => $issues])
+        @include('issues.partials.issue-list', ['issues' => $issues, 'emptyMessage' => 'No issues yet. Create the first one above.'])
 
         @if ($issues->hasPages())
             <div class="card-footer d-flex justify-content-center">

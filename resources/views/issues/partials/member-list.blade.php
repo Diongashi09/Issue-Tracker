@@ -26,14 +26,18 @@
 </div>
 
 @if ($available->isNotEmpty())
-    <form id="member-assign-form" class="d-flex gap-2 mt-3" novalidate
+    <form id="member-assign-form" class="mt-3" novalidate
           data-store-url="{{ route('issues.members.store', $issue) }}">
-        <select class="form-select form-select-sm" name="user_id" id="member-select">
-            <option value="">Assign a member…</option>
-            @foreach ($available as $user)
-                <option value="{{ $user->id }}">{{ $user->name }}</option>
-            @endforeach
-        </select>
-        <button type="submit" class="btn btn-outline-secondary btn-sm text-nowrap">Add</button>
+        <div class="d-flex gap-2">
+            <select class="form-select form-select-sm" name="user_id" id="member-select">
+                <option value="">Assign a member…</option>
+                @foreach ($available as $user)
+                    <option value="{{ $user->id }}">{{ $user->name }}</option>
+                @endforeach
+            </select>
+            <button type="submit" class="btn btn-outline-secondary btn-sm text-nowrap">Add</button>
+        </div>
+        {{-- Inline error shown by members.js on 422 --}}
+        <div class="text-danger small mt-1 d-none" id="error-user_id" role="alert"></div>
     </form>
 @endif

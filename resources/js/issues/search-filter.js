@@ -32,13 +32,14 @@ document.addEventListener('DOMContentLoaded', () => {
         if (abortController) abortController.abort();
         abortController = new AbortController();
 
-        listContainer.style.opacity = '0.5';
+        // Dim the list and block interaction while the request is in flight
+        listContainer.classList.add('opacity-50', 'pe-none');
 
         try {
             const result = await get(url, { signal: abortController.signal });
 
-            listContainer.innerHTML  = result.html;
-            listContainer.style.opacity = '';
+            listContainer.innerHTML = result.html;
+            listContainer.classList.remove('opacity-50', 'pe-none');
 
             if (pagination) {
                 pagination.innerHTML = result.pagination.html;
@@ -50,7 +51,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         } catch (err) {
             if (err.name === 'AbortError') return; // intentional cancel
-            listContainer.style.opacity = '';
+            listContainer.classList.remove('opacity-50', 'pe-none');
             console.error('Issue filter request failed:', err.message);
         } finally {
             abortController = null;
