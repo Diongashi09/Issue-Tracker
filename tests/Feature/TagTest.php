@@ -166,6 +166,46 @@ class TagTest extends TestCase
     }
 
     // -------------------------------------------------------------------------
+    // Authorization — non-owner gets 403
+    // -------------------------------------------------------------------------
+
+    public function test_non_owner_cannot_attach_a_tag(): void
+    {
+        $owner = User::factory()->create();
+        $other = User::factory()->create();
+        $issue = $this->issueOwnedBy($owner);
+        $tag   = Tag::factory()->create();
+
+        $this->actingAs($other)
+            ->postJson(route('issues.tags.store', $issue), ['tag_id' => $tag->id])
+            ->assertForbidden();
+
+        $this->assertDatabaseMissing('issue_tag', [
+            'issue_id' => $issue->id,
+            'tag_id'   => $tag->id,
+        ]);
+    }
+
+    public function test_non_owner_cannot_detach_a_tag(): void
+    {
+        $owner = User::factory()->create();
+        $other = User::factory()->create();
+        $issue = $this->issueOwnedBy($owner);
+        $tag   = Tag::factory()->create();
+        $issue->tags()->attach($tag);
+
+        $this->actingAs($other)
+            ->deleteJson(route('issues.tags.destroy', [$issue, $tag]))
+            ->assertForbidden();
+
+        // Tag must remain attached
+        $this->assertDatabaseHas('issue_tag', [
+            'issue_id' => $issue->id,
+            'tag_id'   => $tag->id,
+        ]);
+    }
+
+    // -------------------------------------------------------------------------
     // Validation
     // -------------------------------------------------------------------------
 

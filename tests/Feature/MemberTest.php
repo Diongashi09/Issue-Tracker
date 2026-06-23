@@ -165,6 +165,46 @@ class MemberTest extends TestCase
     }
 
     // -------------------------------------------------------------------------
+    // Authorization — non-owner gets 403
+    // -------------------------------------------------------------------------
+
+    public function test_non_owner_cannot_assign_a_member(): void
+    {
+        $owner = User::factory()->create();
+        $other = User::factory()->create();
+        $user  = User::factory()->create();
+        $issue = $this->issueOwnedBy($owner);
+
+        $this->actingAs($other)
+            ->postJson(route('issues.members.store', $issue), ['user_id' => $user->id])
+            ->assertForbidden();
+
+        $this->assertDatabaseMissing('issue_user', [
+            'issue_id' => $issue->id,
+            'user_id'  => $user->id,
+        ]);
+    }
+
+    public function test_non_owner_cannot_unassign_a_member(): void
+    {
+        $owner = User::factory()->create();
+        $other = User::factory()->create();
+        $user  = User::factory()->create();
+        $issue = $this->issueOwnedBy($owner);
+        $issue->assignees()->attach($user);
+
+        $this->actingAs($other)
+            ->deleteJson(route('issues.members.destroy', [$issue, $user]))
+            ->assertForbidden();
+
+        // Assignment must remain intact
+        $this->assertDatabaseHas('issue_user', [
+            'issue_id' => $issue->id,
+            'user_id'  => $user->id,
+        ]);
+    }
+
+    // -------------------------------------------------------------------------
     // Validation
     // -------------------------------------------------------------------------
 
