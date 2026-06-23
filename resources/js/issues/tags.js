@@ -1,4 +1,5 @@
 import { post, del, ValidationError } from '../lib/http.js';
+import { paintFormError, clearFormError } from '../lib/form-errors.js';
 
 const SPINNER_HTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
 
@@ -7,9 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (!section) return;
 
-    // -------------------------------------------------------------------------
     // Attach tag — form submit (delegated: form is replaced on every response)
-    // -------------------------------------------------------------------------
     section.addEventListener('submit', async (e) => {
         if (!e.target.matches('#tag-attach-form')) return;
         e.preventDefault();
@@ -28,7 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             const result = await post(form.dataset.storeUrl, { tag_id: parseInt(tagId, 10) });
-            section.innerHTML = result.html; // success: section replaced, button gone
+            section.innerHTML = result.html;
         } catch (err) {
             submitBtn.disabled = false;
             submitBtn.innerHTML = originalLabel;
@@ -42,9 +41,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // -------------------------------------------------------------------------
     // Detach tag — "×" button click (delegated for same reason)
-    // -------------------------------------------------------------------------
     section.addEventListener('click', async (e) => {
         const btn = e.target.closest('[data-destroy-url]');
         if (!btn) return;
@@ -63,21 +60,3 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 });
-
-function paintFormError(form, feedbackId, field, message) {
-    field?.classList.add('is-invalid');
-    const feedback = form.querySelector(`#${feedbackId}`);
-    if (feedback) {
-        feedback.textContent = message;
-        feedback.classList.remove('d-none');
-    }
-}
-
-function clearFormError(form, feedbackId, field) {
-    field?.classList.remove('is-invalid');
-    const feedback = form.querySelector(`#${feedbackId}`);
-    if (feedback) {
-        feedback.textContent = '';
-        feedback.classList.add('d-none');
-    }
-}

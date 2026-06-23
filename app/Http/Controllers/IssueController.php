@@ -60,7 +60,7 @@ class IssueController extends Controller
     public function create(): View
     {
         return view('issues.create', [
-            'projects'          => Project::orderBy('name')->get(),
+            'projects'          => auth()->user()->projects()->orderBy('name')->get(),
             'tags'              => Tag::orderBy('name')->get(),
             'selectedProjectId' => request('project'),
         ]);
@@ -90,7 +90,7 @@ class IssueController extends Controller
 
         return view('issues.edit', [
             'issue'    => $issue,
-            'projects' => Project::orderBy('name')->get(),
+            'projects' => auth()->user()->projects()->orderBy('name')->get(),
             'tags'     => Tag::orderBy('name')->get(),
         ]);
     }

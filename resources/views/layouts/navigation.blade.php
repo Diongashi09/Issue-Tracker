@@ -1,8 +1,8 @@
 <nav class="navbar navbar-expand-md navbar-light bg-white border-bottom shadow-sm">
     <div class="container">
 
-        <a class="navbar-brand fw-semibold" href="{{ route('dashboard') }}">
-            {{ config('app.name', 'Laravel') }}
+        <a class="navbar-brand fw-semibold" href="{{ route('projects.index') }}">
+            {{ config('app.name', 'Issue Tracker') }}
         </a>
 
         <button class="navbar-toggler" type="button"
@@ -15,9 +15,21 @@
 
             <ul class="navbar-nav me-auto">
                 <li class="nav-item">
-                    <a class="nav-link{{ request()->routeIs('dashboard') ? ' active' : '' }}"
-                       href="{{ route('dashboard') }}">
-                        {{ __('Dashboard') }}
+                    <a class="nav-link{{ request()->routeIs('projects.*') ? ' active' : '' }}"
+                       href="{{ route('projects.index') }}">
+                        Projects
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link{{ request()->routeIs('issues.*') ? ' active' : '' }}"
+                       href="{{ route('issues.index') }}">
+                        Issues
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link{{ request()->routeIs('tags.*') ? ' active' : '' }}"
+                       href="{{ route('tags.index') }}">
+                        Tags
                     </a>
                 </li>
             </ul>

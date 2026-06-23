@@ -60,6 +60,7 @@
                            maxlength="255">
                     @if ($hasActiveFilter)
                         <a href="{{ route('issues.index') }}"
+                           id="filter-clear"
                            class="btn btn-outline-secondary"
                            title="Clear all filters">
                             &times;

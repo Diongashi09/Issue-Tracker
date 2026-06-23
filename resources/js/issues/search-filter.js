@@ -85,6 +85,16 @@ document.addEventListener('DOMContentLoaded', () => {
         fetchNow();
     });
 
+    // Intercept the "× Clear all filters" link so it stays AJAX instead of a full reload.
+    // The link is only in the DOM when at least one filter is active.
+    document.addEventListener('click', (e) => {
+        if (e.target.closest('#filter-clear')) {
+            e.preventDefault();
+            form.reset();
+            fetchNow();
+        }
+    });
+
     // -------------------------------------------------------------------------
     // Intercept pagination link clicks so they stay AJAX instead of full reloads.
     // The paginator uses withQueryString(), so each link already carries the
