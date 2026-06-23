@@ -1,9 +1,8 @@
 {{--
-  Shared partial — used in projects.show (Phase 2) and issues.index (Phase 3).
+  Shared partial — used in projects.show and issues.index (AJAX swap target on filter/search).
   Receives: $issues (LengthAwarePaginator with tags, assignees, comments_count eager-loaded).
-  Optional: $showProject (bool) — render a Project column. issues.index passes true (project
-  is eager-loaded there); projects.show omits it since the project is already the page context.
-  Phase 4 will make this the AJAX swap target for search + filter responses.
+  Optional: $showProject (bool) — render a Project column.
+  Optional: $emptyMessage (string) — overrides the default "No issues found." empty state.
 --}}
 @php
     $showProject = $showProject ?? false;

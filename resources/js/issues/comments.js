@@ -63,7 +63,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (err instanceof ValidationError) {
                 paintErrors(err.errors);
             } else {
-                // Phase 6 will replace this with a proper toast
                 alert(`Could not post comment: ${err.message}`);
             }
         } finally {

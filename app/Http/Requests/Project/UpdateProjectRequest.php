@@ -9,7 +9,7 @@ class UpdateProjectRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true; // ProjectPolicy::update() wired in next phase via authorizeResource()
+        return true; // ProjectPolicy::update() gates this via authorizeResource()
     }
 
     public function rules(): array
