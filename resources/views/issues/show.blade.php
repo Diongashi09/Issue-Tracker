@@ -29,18 +29,24 @@
                 </div>
             </div>
 
-            {{-- Phase 5 gates these with @can('update'/'delete', $issue). --}}
+            @canany(['update', 'delete'], $issue)
             <div class="d-flex gap-2">
-                <a href="{{ route('issues.edit', $issue) }}" class="btn btn-outline-secondary btn-sm">
-                    Edit Issue
-                </a>
-                <form method="POST" action="{{ route('issues.destroy', $issue) }}" class="d-inline"
-                      onsubmit="return confirm('Delete this issue?')">
-                    @csrf
-                    @method('DELETE')
-                    <button type="submit" class="btn btn-outline-danger btn-sm">Delete</button>
-                </form>
+                @can('update', $issue)
+                    <a href="{{ route('issues.edit', $issue) }}" class="btn btn-outline-secondary btn-sm">
+                        Edit Issue
+                    </a>
+                @endcan
+
+                @can('delete', $issue)
+                    <form method="POST" action="{{ route('issues.destroy', $issue) }}" class="d-inline"
+                          onsubmit="return confirm('Delete this issue?')">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="btn btn-outline-danger btn-sm">Delete</button>
+                    </form>
+                @endcan
             </div>
+            @endcanany
         </div>
     </x-slot>
 

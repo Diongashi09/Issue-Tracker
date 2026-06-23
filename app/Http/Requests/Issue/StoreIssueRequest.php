@@ -11,23 +11,30 @@ class StoreIssueRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        // Authorization (owner-of-parent-project) is wired in Phase 5 via IssuePolicy.
-        return true;
+        return true; // IssuePolicy::create() gates this via authorizeResource()
     }
 
     public function rules(): array
     {
         return [
-            'project_id'  => ['required', 'integer', 'exists:projects,id'],
+            // Scoped exists: project must belong to the authenticated user.
+            // Prevents creating issues in other users' projects.
+            'project_id'  => ['required', 'integer', Rule::exists('projects', 'id')->where('user_id', $this->user()->id)],
             'title'       => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
-            // Rule::enum shares the same enum used for the cast — no duplicated string lists.
             'status'      => ['required', Rule::enum(IssueStatus::class)],
             'priority'    => ['required', Rule::enum(IssuePriority::class)],
             'due_date'    => ['nullable', 'date'],
-            // Tags are synced after create; each id must reference an existing tag (prevents IDOR attachment).
+            // Tags are synced after create; each id must reference an existing tag.
             'tags'        => ['nullable', 'array'],
             'tags.*'      => ['integer', 'exists:tags,id'],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'project_id.exists' => 'The selected project does not exist or does not belong to you.',
         ];
     }
 }

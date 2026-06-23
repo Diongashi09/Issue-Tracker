@@ -291,4 +291,35 @@ class IssueTest extends TestCase
             ->post(route('issues.store'), $this->validPayload(99999))
             ->assertSessionHasErrors('project_id');
     }
+
+    public function test_cannot_create_issue_in_another_users_project(): void
+    {
+        $alice   = User::factory()->create();
+        $bob     = User::factory()->create();
+        $project = Project::factory()->create(['user_id' => $bob->id]);
+
+        // Alice tries to create an issue in Bob's project — ownership check must block it.
+        $this->actingAs($alice)
+            ->post(route('issues.store'), $this->validPayload($project->id))
+            ->assertSessionHasErrors('project_id');
+
+        $this->assertDatabaseMissing('issues', ['project_id' => $project->id]);
+    }
+
+    public function test_cannot_move_issue_to_another_users_project(): void
+    {
+        $alice      = User::factory()->create();
+        $bob        = User::factory()->create();
+        $issue      = $this->issueOwnedBy($alice);
+        $bobProject = Project::factory()->create(['user_id' => $bob->id]);
+
+        // Alice owns the issue but tries to reassign it to Bob's project.
+        $this->actingAs($alice)
+            ->patch(route('issues.update', $issue), $this->validPayload($bobProject->id, [
+                'title' => 'Moved Attempt',
+            ]))
+            ->assertSessionHasErrors('project_id');
+
+        $this->assertDatabaseMissing('issues', ['id' => $issue->id, 'project_id' => $bobProject->id]);
+    }
 }
