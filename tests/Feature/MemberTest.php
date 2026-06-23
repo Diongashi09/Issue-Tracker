@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Issue;
+use App\Models\Project;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -10,6 +11,14 @@ use Tests\TestCase;
 class MemberTest extends TestCase
 {
     use RefreshDatabase;
+
+    // Helper: create an issue owned by $user (project.user_id === $user->id).
+    private function issueOwnedBy(User $user): Issue
+    {
+        $project = Project::factory()->create(['user_id' => $user->id]);
+
+        return Issue::factory()->create(['project_id' => $project->id]);
+    }
 
     // -------------------------------------------------------------------------
     // Auth guards
@@ -41,7 +50,7 @@ class MemberTest extends TestCase
     public function test_authenticated_user_can_assign_a_member(): void
     {
         $actor = User::factory()->create();
-        $issue = Issue::factory()->create();
+        $issue = $this->issueOwnedBy($actor);
         $user  = User::factory()->create();
 
         $this->actingAs($actor)
@@ -58,7 +67,7 @@ class MemberTest extends TestCase
     public function test_assign_returns_html_containing_the_new_member(): void
     {
         $actor = User::factory()->create();
-        $issue = Issue::factory()->create();
+        $issue = $this->issueOwnedBy($actor);
         $user  = User::factory()->create(['name' => 'Alice Tester']);
 
         $html = $this->actingAs($actor)
@@ -71,7 +80,7 @@ class MemberTest extends TestCase
     public function test_assign_is_idempotent_no_duplicate_pivot_row(): void
     {
         $actor = User::factory()->create();
-        $issue = Issue::factory()->create();
+        $issue = $this->issueOwnedBy($actor);
         $user  = User::factory()->create();
 
         $this->actingAs($actor)
@@ -95,7 +104,7 @@ class MemberTest extends TestCase
     public function test_assign_html_omits_already_assigned_user_from_select(): void
     {
         $actor = User::factory()->create();
-        $issue = Issue::factory()->create();
+        $issue = $this->issueOwnedBy($actor);
         $user  = User::factory()->create(['name' => 'Bob Assignee']);
 
         $html = $this->actingAs($actor)
@@ -115,7 +124,7 @@ class MemberTest extends TestCase
     public function test_authenticated_user_can_unassign_a_member(): void
     {
         $actor = User::factory()->create();
-        $issue = Issue::factory()->create();
+        $issue = $this->issueOwnedBy($actor);
         $user  = User::factory()->create();
         $issue->assignees()->attach($user);
 
@@ -133,7 +142,7 @@ class MemberTest extends TestCase
     public function test_unassign_returns_html_no_longer_containing_removed_member(): void
     {
         $actor = User::factory()->create();
-        $issue = Issue::factory()->create();
+        $issue = $this->issueOwnedBy($actor);
         $user  = User::factory()->create(['name' => 'Carol Removed']);
         $issue->assignees()->attach($user);
 
@@ -147,9 +156,8 @@ class MemberTest extends TestCase
     public function test_unassign_user_not_on_issue_still_returns_ok(): void
     {
         $actor = User::factory()->create();
-        $issue = Issue::factory()->create();
+        $issue = $this->issueOwnedBy($actor);
         $user  = User::factory()->create();
-        // Not assigned — detach is a no-op
 
         $this->actingAs($actor)
             ->deleteJson(route('issues.members.destroy', [$issue, $user]))
@@ -163,7 +171,7 @@ class MemberTest extends TestCase
     public function test_store_requires_user_id(): void
     {
         $actor = User::factory()->create();
-        $issue = Issue::factory()->create();
+        $issue = $this->issueOwnedBy($actor);
 
         $this->actingAs($actor)
             ->postJson(route('issues.members.store', $issue), [])
@@ -174,7 +182,7 @@ class MemberTest extends TestCase
     public function test_store_user_id_must_exist(): void
     {
         $actor = User::factory()->create();
-        $issue = Issue::factory()->create();
+        $issue = $this->issueOwnedBy($actor);
 
         $this->actingAs($actor)
             ->postJson(route('issues.members.store', $issue), ['user_id' => 99999])

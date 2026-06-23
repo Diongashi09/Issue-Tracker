@@ -12,6 +12,8 @@ class MemberController extends Controller
 {
     public function store(AttachMemberRequest $request, Issue $issue): JsonResponse
     {
+        $this->authorize('update', $issue);
+
         $issue->assignees()->syncWithoutDetaching([$request->validated('user_id')]);
 
         return $this->memberListResponse($issue);
@@ -19,6 +21,8 @@ class MemberController extends Controller
 
     public function destroy(Issue $issue, User $user): JsonResponse
     {
+        $this->authorize('update', $issue);
+
         $issue->assignees()->detach($user);
 
         return $this->memberListResponse($issue);

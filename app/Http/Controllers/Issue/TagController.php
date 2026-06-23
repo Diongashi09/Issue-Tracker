@@ -10,33 +10,24 @@ use Illuminate\Http\JsonResponse;
 
 class TagController extends Controller
 {
-    /**
-     * Attach a tag to the issue (idempotent — duplicate pivot rows are ignored).
-     *
-     * Returns the refreshed tag-list partial so JS can swap the section's innerHTML.
-     */
     public function store(AttachTagRequest $request, Issue $issue): JsonResponse
     {
+        $this->authorize('update', $issue);
+
         $issue->tags()->syncWithoutDetaching([$request->validated('tag_id')]);
 
         return $this->tagListResponse($issue);
     }
 
-    /**
-     * Detach a tag from the issue.
-     */
     public function destroy(Issue $issue, Tag $tag): JsonResponse
     {
+        $this->authorize('update', $issue);
+
         $issue->tags()->detach($tag);
 
         return $this->tagListResponse($issue);
     }
 
-    /**
-     * Reload the issue's tags and return the rendered tag-list partial.
-     *
-     * Uses load() (not loadMissing()) so the freshly modified pivot is always reflected.
-     */
     private function tagListResponse(Issue $issue): JsonResponse
     {
         $issue->load('tags');

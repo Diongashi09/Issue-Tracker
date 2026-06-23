@@ -15,7 +15,10 @@ use Illuminate\View\View;
 
 class IssueController extends Controller
 {
-    // Phase 5 wires authorizeResource(Issue::class, 'issue') here for edit/update/destroy.
+    public function __construct()
+    {
+        $this->authorizeResource(Issue::class, 'issue');
+    }
 
     public function index(IndexIssueRequest $request): View|JsonResponse
     {
