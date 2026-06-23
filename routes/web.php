@@ -32,8 +32,8 @@ Route::middleware('auth')->group(function () {
     Route::post  ('issues/{issue}/members',        [IssueMemberController::class, 'store'])->name('issues.members.store');
     Route::delete('issues/{issue}/members/{user}', [IssueMemberController::class, 'destroy'])->name('issues.members.destroy');
 
-    // Tag library — creation only (index served inline; blueprint §8)
-    Route::post('tags', [TagController::class, 'store'])->name('tags.store');
+    // Tag library — full management (index, create-inline, edit, update, delete)
+    Route::resource('tags', TagController::class)->only(['index', 'store', 'edit', 'update', 'destroy']);
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
