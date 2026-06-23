@@ -1,13 +1,19 @@
 {{--
   Shared partial — used in projects.show (Phase 2) and issues.index (Phase 3).
   Receives: $issues (LengthAwarePaginator with tags, assignees, comments_count eager-loaded).
+  Optional: $showProject (bool) — render a Project column. issues.index passes true (project
+  is eager-loaded there); projects.show omits it since the project is already the page context.
   Phase 4 will make this the AJAX swap target for search + filter responses.
 --}}
+@php($showProject = $showProject ?? false)
 <div class="table-responsive">
     <table class="table table-hover align-middle mb-0">
         <thead class="table-light">
             <tr>
                 <th>Title</th>
+                @if ($showProject)
+                    <th class="text-nowrap">Project</th>
+                @endif
                 <th class="text-nowrap">Status</th>
                 <th class="text-nowrap">Priority</th>
                 <th class="text-nowrap">Due Date</th>
@@ -35,6 +41,15 @@
                             </div>
                         @endif
                     </td>
+
+                    @if ($showProject)
+                        <td class="text-nowrap">
+                            <a href="{{ route('projects.show', $issue->project) }}"
+                               class="text-decoration-none text-muted small">
+                                {{ $issue->project->name }}
+                            </a>
+                        </td>
+                    @endif
 
                     <td><x-status-badge :status="$issue->status" /></td>
 
@@ -67,7 +82,7 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="5" class="text-center text-muted py-5">
+                    <td colspan="{{ $showProject ? 6 : 5 }}" class="text-center text-muted py-5">
                         No issues yet.
                     </td>
                 </tr>
