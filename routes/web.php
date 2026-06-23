@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Issue\CommentController as IssueCommentController;
 use App\Http\Controllers\IssueController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProjectController;
@@ -15,6 +16,10 @@ Route::get('/dashboard', fn () => view('dashboard'))
 Route::middleware('auth')->group(function () {
     Route::resource('projects', ProjectController::class);
     Route::resource('issues', IssueController::class);
+
+    // Nested comment sub-resource (AJAX only — blueprint §8)
+    Route::get ('issues/{issue}/comments', [IssueCommentController::class, 'index'])->name('issues.comments.index');
+    Route::post('issues/{issue}/comments', [IssueCommentController::class, 'store'])->name('issues.comments.store');
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');

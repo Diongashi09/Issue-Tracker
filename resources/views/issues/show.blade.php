@@ -60,13 +60,59 @@
                 </div>
             </div>
 
-            {{-- Comments — placeholder. Phase 4 lazy-loads paginated comments here via AJAX. --}}
+            {{-- Comments — lazy-loaded on page paint, paginated via "Load older" (blueprint §10, §14). --}}
             <div class="card shadow-sm">
                 <div class="card-header">
                     <h2 class="h6 mb-0">Comments</h2>
                 </div>
-                <div class="card-body" id="comments-section" data-issue-id="{{ $issue->id }}">
-                    <p class="mb-0 text-muted small">Comments load here in Phase 4.</p>
+
+                {{--
+                  AJAX renders into this list.
+                  aria-live: screen readers announce newly prepended comments.
+                  data-index-url: comments.js reads this to know where to GET pages from.
+                --}}
+                <div id="comment-list"
+                     class="list-group list-group-flush"
+                     aria-live="polite"
+                     aria-relevant="additions"
+                     data-index-url="{{ route('issues.comments.index', $issue) }}">
+                    <div class="list-group-item text-muted small fst-italic py-3">
+                        Loading comments…
+                    </div>
+                </div>
+
+                <div id="comment-load-more-container" class="d-none border-top text-center py-2">
+                    <button type="button" id="comment-load-more"
+                            class="btn btn-link btn-sm p-0 text-decoration-none text-muted">
+                        Load older comments
+                    </button>
+                </div>
+
+                <div class="card-footer bg-transparent">
+                    <form id="comment-form" novalidate
+                          data-store-url="{{ route('issues.comments.store', $issue) }}">
+                        <div class="mb-2">
+                            <label for="comment_author_name" class="form-label fw-medium small mb-1">
+                                Your name
+                            </label>
+                            <input type="text" id="comment_author_name" name="author_name"
+                                   class="form-control form-control-sm"
+                                   placeholder="Display name" maxlength="255" autocomplete="name">
+                            <div class="invalid-feedback" id="error-author_name"></div>
+                        </div>
+                        <div class="mb-2">
+                            <label for="comment_body" class="form-label fw-medium small mb-1">
+                                Comment
+                            </label>
+                            <textarea id="comment_body" name="body"
+                                      class="form-control form-control-sm" rows="3"
+                                      placeholder="Write a comment…" maxlength="5000"></textarea>
+                            <div class="invalid-feedback" id="error-body"></div>
+                        </div>
+                        <button type="submit" id="comment-submit" class="btn btn-primary btn-sm">
+                            Add Comment
+                        </button>
+                    </form>
                 </div>
             </div>
         </div>

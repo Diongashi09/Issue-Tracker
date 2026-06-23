@@ -5,7 +5,9 @@
   is eager-loaded there); projects.show omits it since the project is already the page context.
   Phase 4 will make this the AJAX swap target for search + filter responses.
 --}}
-@php($showProject = $showProject ?? false)
+@php
+    $showProject = $showProject ?? false;
+@endphp
 <div class="table-responsive">
     <table class="table table-hover align-middle mb-0">
         <thead class="table-light">
